@@ -1,3 +1,3 @@
-# Bipedal Walker
+# Lunar Lander
 
-<img src="https://www.gymlibrary.ml/_images/bipedal_walker.gif" alt="Bipedal Walker" width="320">
+<img src="https://www.gymlibrary.ml/_images/lunar_lander.gif" alt="Lunar Lander Demo" width="320">
