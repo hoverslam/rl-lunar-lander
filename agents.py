@@ -12,7 +12,7 @@ from abc import ABC, abstractmethod
 class Agent(ABC):
     
     @abstractmethod
-    def __init__(self, env, gamma: float, epsilon_init: float, epsilon_min: float, epsilon_decay: float, 
+    def __init__(self, gamma: float, epsilon_init: float, epsilon_min: float, epsilon_decay: float, 
                  alpha: float, input_dim: int, output_dim: int, hidden_dims: list[int]) -> None:
         """Base class for all agents.
 
@@ -27,7 +27,6 @@ class Agent(ABC):
             output_dim (int): Number of available actions (i.e. action space)
             hidden_dims (list[int]): A list with units per layer.
         """
-        self.env = env
         self.gamma = gamma        
         self.epsilon_init = epsilon_init
         self.epsilon_min = epsilon_min
@@ -149,12 +148,11 @@ class Agent(ABC):
 
 class NFQ(Agent):
     
-    def __init__(self, env, gamma: float, epsilon_init: float, epsilon_min: float, epsilon_decay: float, 
+    def __init__(self, gamma: float, epsilon_init: float, epsilon_min: float, epsilon_decay: float, 
                  alpha: float, input_dim: int, output_dim: int, hidden_dims: list[int]) -> None:
         """An agent using the Neural Fitted Q Iteration.
 
         Args:
-            env (_type_): An OpenAI gym environment.
             gamma (float): Discount factor.
             epsilon_init (float): Start value of epsilon schedule.
             epsilon_min (float): Minimum value of epsilon schedule.
@@ -164,17 +162,19 @@ class NFQ(Agent):
             output_dim (int): Number of available actions (i.e. action space)
             hidden_dims (list[int]): A list with units per layer.
         """
-        super().__init__(env, gamma, epsilon_init, epsilon_min, epsilon_decay, 
+        super().__init__(gamma, epsilon_init, epsilon_min, epsilon_decay, 
                          alpha, input_dim, output_dim, hidden_dims)
 
+        self.name = "Neural Fitted Q Iteration"
         self.model = FCQ(input_dim, output_dim, hidden_dims)
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=alpha)
         self.criterion = nn.MSELoss()
         
-    def train(self, episodes: int, epochs: int) -> dict:
+    def train(self, env, episodes: int, epochs: int) -> dict:
         """Train the agent on a given number of episodes.
 
         Args:
+            env(_type_): An OpenAI gym environment.
             episodes (int): Number of episodes.
             epochs (int): Number of epochs per fitting.
 
@@ -186,14 +186,14 @@ class NFQ(Agent):
         results = {"episode": [], "score": []}
         
         for episode in tqdm(range(episodes)):
-            state = self.env.reset()
+            state = env.reset()
             self.memory = []
             terminated, truncated = False, False
             score = 0
             
             while (not terminated) and (not truncated):
                 action = self.act(state, epsilons[episode])
-                next_state, reward, terminated, truncated, _ = self.env.step(action)
+                next_state, reward, terminated, truncated, _ = env.step(action)
                 
                 self.memory.append((state, action, reward, next_state, terminated))                
                 state = next_state
@@ -206,10 +206,11 @@ class NFQ(Agent):
             
         return results
     
-    def play(self, episodes: int) -> None:
+    def play(self, env, episodes: int) -> None:
         """Play a given number of episodes.
 
         Args:
+            env(_type_): An OpenAI gym environment.
             episodes (int): Number of episodes.
 
         Returns:
@@ -218,13 +219,13 @@ class NFQ(Agent):
         self.model.eval()
         
         for episode in range(episodes):
-            state = self.env.reset()
+            state = env.reset()
             terminated, truncated = False, False
             score = 0
             
             while (not terminated) and (not truncated):
                 action = self.act(state)
-                state, reward, terminated, truncated, _ = self.env.step(action)
+                state, reward, terminated, truncated, _ = env.step(action)
                                 
                 score += reward  
         
