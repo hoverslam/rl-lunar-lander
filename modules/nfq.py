@@ -15,7 +15,8 @@ from base import Agent
 class NFQAgent(Agent):
     
     def __init__(self, gamma: float, epsilon_init: float, epsilon_min: float, epsilon_decay: float, 
-                 alpha: float, input_dim: int, output_dim: int, hidden_dims: list[int]) -> None:
+                 alpha: float, input_dim: int, output_dim: int, hidden_dims: list[int], 
+                 epochs: int) -> None:
         """An agent implemented by Neural Fitted Q Iteration.
 
         Args:
@@ -27,6 +28,7 @@ class NFQAgent(Agent):
             input_dim (int): Number of input dimensions (i.e. state space)
             output_dim (int): Number of available actions (i.e. action space)
             hidden_dims (list[int]): A list with units per layer.
+            epochs (int): Number of training passes of the memory every episode.
         """
         super().__init__(gamma, epsilon_init, epsilon_min, epsilon_decay, 
                          alpha, input_dim, output_dim, hidden_dims)
@@ -35,14 +37,14 @@ class NFQAgent(Agent):
         self.model = FCQ(input_dim, output_dim, hidden_dims)
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=alpha)
         self.criterion = nn.MSELoss()
+        self.epochs = epochs
         
-    def train(self, env, episodes: int, epochs: int) -> dict:
+    def train(self, env, episodes: int) -> dict:
         """Train the agent on a given number of episodes.
 
         Args:
             env(_type_): An OpenAI gym environment.
             episodes (int): Number of episodes.
-            epochs (int): Number of epochs per fitting.
 
         Returns:
             dict: A dictionary containing the score of each episode.
@@ -65,7 +67,7 @@ class NFQAgent(Agent):
                 state = next_state
                 score += reward     
             
-            self.optimize(epochs)
+            self.optimize()
             
             results["episode"].append(episode+1)
             results["score"].append(score)
@@ -97,11 +99,8 @@ class NFQAgent(Agent):
         
             print("{}/{}: Score = {:.2f}".format(episode+1, episodes, score))              
             
-    def optimize(self, epochs: int) -> None:
+    def optimize(self) -> None:
         """Fit the agent memory to the model.
-
-        Args:
-            epochs (int): Number of epochs.
         """
         states, actions, rewards, next_states, terminated = list(zip(*self.memory))
         states = np.array(states, dtype=np.float32)
@@ -110,7 +109,7 @@ class NFQAgent(Agent):
         next_states = np.array(next_states, dtype=np.float32)
         terminated = torch.tensor(terminated, dtype=torch.int8, device=self.model.device)
 
-        for _ in range(epochs):
+        for _ in range(self.epochs):
             pred_qs = self.model(states).gather(1, actions).squeeze()
             max_qs = self.model(next_states).detach().max(1)[0]
             target_qs = rewards + self.gamma * max_qs * (1 - terminated)
