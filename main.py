@@ -7,8 +7,7 @@ from dqn import DQNAgent
 
 
 agents = {"NFQ": NFQAgent(gamma=0.99, epsilon_init=1.0, epsilon_min=0.1, epsilon_decay=0.9, 
-                          alpha=0.0001, input_dim=8, output_dim=4, hidden_dims=[1028, 512], 
-                          epochs=50)}
+                          alpha=0.0001, input_dim=8, output_dim=4, hidden_dims=[1028, 512])}
 
 
 def train(episodes: int, algo: str) -> None:

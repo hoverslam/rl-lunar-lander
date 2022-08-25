@@ -16,7 +16,7 @@ class NFQAgent(Agent):
     
     def __init__(self, gamma: float, epsilon_init: float, epsilon_min: float, epsilon_decay: float, 
                  alpha: float, input_dim: int, output_dim: int, hidden_dims: list[int], 
-                 epochs: int) -> None:
+                 epochs: int = 50) -> None:
         """An agent implemented by Neural Fitted Q Iteration.
 
         Args:
@@ -28,7 +28,7 @@ class NFQAgent(Agent):
             input_dim (int): Number of input dimensions (i.e. state space)
             output_dim (int): Number of available actions (i.e. action space)
             hidden_dims (list[int]): A list with units per layer.
-            epochs (int): Number of training passes of the memory every episode.
+            epochs (int): Number of training passes of the memory every episode. Defaults to 50.
         """
         super().__init__(gamma, epsilon_init, epsilon_min, epsilon_decay, 
                          alpha, input_dim, output_dim, hidden_dims)
