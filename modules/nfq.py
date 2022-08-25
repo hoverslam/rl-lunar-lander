@@ -16,7 +16,7 @@ class NFQAgent(Agent):
     
     def __init__(self, gamma: float, epsilon_init: float, epsilon_min: float, epsilon_decay: float, 
                  alpha: float, input_dim: int, output_dim: int, hidden_dims: list[int], 
-                 epochs: int = 50) -> None:
+                 epochs: int = 30) -> None:
         """An agent implemented by Neural Fitted Q Iteration.
 
         Args:
