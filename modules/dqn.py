@@ -68,20 +68,24 @@ class DQNAgent(Agent):
             results["score"].append(score)
             
         return results
-        
-    def play(self, env, episodes):
-        # TODO: Implement
-        pass
     
     def optimize(self):
-        # TODO: Implement
+        # TODO: Test
+        states, actions, rewards, next_states, terminated = self.memory.sample(self.batch_size)
+        states = torch.tensor(states, dtype=torch.float32, device=self.model.device)
+        actions = torch.tensor(actions, dtype=torch.int64, device=self.model.device).unsqueeze(1)
+        rewards = torch.tensor(rewards, dtype=torch.float32, device=self.model.device)
+        next_states = torch.tensor(next_states, dtype=torch.float32, device=self.model.device)
+        terminated = torch.tensor(terminated, dtype=torch.int8, device=self.model.device)
+
+        pred_qs = self.model(states).gather(1, actions).squeeze()
+        max_qs = self.model(next_states).detach().max(1)[0]
+        target_qs = rewards + self.gamma * max_qs * (1 - terminated)
         
-        # 1.) sample batch from memory
-        # 2.) make predictions
-        # 3.) set Q-Learning targets
-        # 4.) fit on MSE
-        
-        pass
+        self.optimizer.zero_grad()
+        loss = self.criterion(pred_qs, target_qs)
+        loss.backward()
+        self.optimizer.step()
 
    
 class DQN(nn.Module):
@@ -145,9 +149,9 @@ class ReplayMemory():
         idx = self.rng.choice(self.size, batch_size, replace=False)
         
         return (
-            [self.states[i] for i in idx],
-            [self.actions[i] for i in idx],
-            [self.rewards[i] for i in idx],
-            [self.next_states[i] for i in idx],
-            [self.terminated[i] for i in idx]
+            np.stack([self.states[i] for i in idx]),
+            np.array([self.actions[i] for i in idx]),
+            np.array([self.rewards[i] for i in idx]),
+            np.stack([self.next_states[i] for i in idx]),
+            np.array([self.terminated[i] for i in idx])
         )
