@@ -1,5 +1,4 @@
 import os
-from typing import Any
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -62,6 +61,7 @@ class Agent(ABC):
             dict: A dictionary containing the score of each episode.
         """
         self.model.eval()
+        results = {"episode": [], "score": []}
         
         for episode in range(episodes):
             state = env.reset()
@@ -74,7 +74,11 @@ class Agent(ABC):
                                 
                 score += reward  
         
-            print("{}/{}: Score = {:.2f}".format(episode+1, episodes, score))       
+            print("{}/{}: {:.2f}".format(episode+1, episodes, score))
+            results["episode"].append(episode+1)
+            results["score"].append(score)
+            
+        return results      
     
     def act(self, state: np.ndarray, epsilon: float = 0.0) -> int:
         """Choose (optimal) action given an observation.
@@ -145,7 +149,7 @@ class Agent(ABC):
         results["sma100"] = results["score"].rolling(100).mean()
         _, ax = plt.subplots()
         ax.plot(results["episode"], results["sma100"], c="red", label="SMA100")
-        ax.scatter(results["episode"], results["score"], s=2, alpha=0.2)
+        ax.scatter(results["episode"], results["score"], s=2, alpha=0.5)
         ax.legend()
         ax.set_xlabel("Episode")
         ax.set_ylabel("Score")
