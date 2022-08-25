@@ -17,21 +17,29 @@ def train(episodes: int, algo: str) -> None:
 
     a = agents[algo]
     results = a.train(env, episodes)
-    a.plot_results(results, a.name)
     a.save_model("{}.pt".format(algo))
     
+    a.plot_results(results, a.name)
+
     env.close()
     
-def show(episodes: int, algo: str) -> None:
-    env = gym.make("LunarLander-v2", render_mode="human", new_step_api=True)
+def evaluate(episodes: int, algo: str) -> None:
+    env = gym.make("LunarLander-v2", new_step_api=True)
         
     a = agents[algo]
     a.load_model("{}.pt".format(algo))
-    a.play(env, episodes)
+    results = a.play(env, episodes)
+    
+    average = sum(results["score"]) / len(results["score"])
+    print("----------------------")     
+    print("Average score: {:.2f}".format(average))
+    print("----------------------")
+    
+    a.plot_results(results, a.name)
     
     env.close()
     
 
 if __name__ == "__main__":
     train(1000, "NFQ")
-    show(10, "NFQ")
+    evaluate(10, "NFQ")
