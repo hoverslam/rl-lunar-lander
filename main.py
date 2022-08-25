@@ -23,8 +23,11 @@ def train(episodes: int, algo: str) -> None:
 
     env.close()
     
-def evaluate(episodes: int, algo: str) -> None:
-    env = gym.make("LunarLander-v2", new_step_api=True)
+def evaluate(episodes: int, algo: str, render: bool = True) -> None:
+    if render:
+        env = gym.make("LunarLander-v2", render_mode="human", new_step_api=True)
+    else:
+        env = gym.make("LunarLander-v2", new_step_api=True)
         
     a = agents[algo]
     a.load_model("{}.pt".format(algo))
