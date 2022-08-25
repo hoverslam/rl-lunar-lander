@@ -1,4 +1,5 @@
 import os
+from typing import Any
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -50,17 +51,30 @@ class Agent(ABC):
         """
         raise NotImplementedError
     
-    @abstractmethod
-    def play(self, episodes: int) -> None:
+    def play(self, env, episodes: int) -> None:
         """Play a given number of episodes.
 
         Args:
+            env(_type_): An OpenAI gym environment.
             episodes (int): Number of episodes.
 
-        Raises:
-            NotImplementedError: Implement in subclass.
+        Returns:
+            dict: A dictionary containing the score of each episode.
         """
-        raise NotImplementedError        
+        self.model.eval()
+        
+        for episode in range(episodes):
+            state = env.reset()
+            terminated, truncated = False, False
+            score = 0
+            
+            while (not terminated) and (not truncated):
+                action = self.act(state)
+                state, reward, terminated, truncated, _ = env.step(action)
+                                
+                score += reward  
+        
+            print("{}/{}: Score = {:.2f}".format(episode+1, episodes, score))       
     
     def act(self, state: np.ndarray, epsilon: float = 0.0) -> int:
         """Choose (optimal) action given an observation.

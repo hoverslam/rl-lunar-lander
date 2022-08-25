@@ -72,32 +72,7 @@ class NFQAgent(Agent):
             results["episode"].append(episode+1)
             results["score"].append(score)
             
-        return results
-    
-    def play(self, env, episodes: int) -> None:
-        """Play a given number of episodes.
-
-        Args:
-            env(_type_): An OpenAI gym environment.
-            episodes (int): Number of episodes.
-
-        Returns:
-            dict: A dictionary containing the score of each episode.
-        """
-        self.model.eval()
-        
-        for episode in range(episodes):
-            state = env.reset()
-            terminated, truncated = False, False
-            score = 0
-            
-            while (not terminated) and (not truncated):
-                action = self.act(state)
-                state, reward, terminated, truncated, _ = env.step(action)
-                                
-                score += reward  
-        
-            print("{}/{}: Score = {:.2f}".format(episode+1, episodes, score))              
+        return results              
             
     def optimize(self) -> None:
         """Fit the agent memory to the model.
