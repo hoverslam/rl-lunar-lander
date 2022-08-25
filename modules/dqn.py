@@ -42,12 +42,12 @@ class DQNAgent(Agent):
         self.batch_size = batch_size
         
     def train(self, env, episodes):
-        # TODO: Testing
+        # TODO: Test
         self.model.train()
         epsilons = self.decay_schedule(self.epsilon_init, self.epsilon_min, self.epsilon_decay, episodes)
         results = {"episode": [], "score": []}
         
-        for episode in episodes:
+        for episode in tqdm(range(episodes)):
             state = env.reset()
             terminated, truncated = False, False
             score = 0
@@ -59,8 +59,9 @@ class DQNAgent(Agent):
                 self.memory.append((state, action, reward, next_state, terminated))
                 state = next_state
                 score += reward
-                
-                if len(self.memory) > (5 * batch_size):
+
+                # Only start training when replay memory is big enough
+                if len(self.memory) > (5 * self.batch_size):
                     self.optimize()
                     
             results["episode"].append(episode+1)
@@ -87,12 +88,30 @@ class DQN(nn.Module):
     
     def __init__(self, input_dim: int, output_dim: int, hidden_dims: list[int]):
         super(DQN, self).__init__()        
-        # TODO: Implement
-        pass
+        # TODO: Test
+        self.input_layer = nn.Linear(input_dim, hidden_dims[0])
+        self.hidden_layers = nn.ModuleList()
+        for i in range(len(hidden_dims)-1):
+            hidden_layer = nn.Linear(hidden_dims[i], hidden_dims[i+1])
+            self.hidden_layers.append(hidden_layer)
+        self.output_layer = nn.Linear(hidden_dims[-1], output_dim)
+        
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.to(self.device)
     
     def forward(self, state):
-        # TODO: Implement
-        pass
+        # TODO: Test
+        if not isinstance(state, torch.Tensor):
+            x = torch.tensor(state, dtype=torch.float32, device=self.device)
+        else:
+            x = state
+            
+        x = F.relu(self.input_layer(x))
+        for hidden_layer in self.hidden_layers:
+            x = F.relu(hidden_layer(x))
+        x = self.output_layer(x)
+        
+        return x
     
     
 class ReplayMemory():
