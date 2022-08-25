@@ -75,7 +75,7 @@ class NFQAgent(Agent):
         return results              
             
     def optimize(self) -> None:
-        """Fit the agent memory to the model.
+        """Fit agent model.
         """
         states, actions, rewards, next_states, terminated = list(zip(*self.memory))
         states = np.array(states, dtype=np.float32)
@@ -98,9 +98,10 @@ class NFQAgent(Agent):
 class FCQ(nn.Module):
     
     def __init__(self, input_dim: int, output_dim: int, hidden_dims: list[int]) -> None:
-        super(FCQ, self).__init__()
-        """Initialize the model.
+        """Initialize model.
         """        
+        super(FCQ, self).__init__()
+        
         # Nice way to make the network architecture flexible. See: Morales (2020) Grooking DRL
         self.input_layer = nn.Linear(input_dim, hidden_dims[0])
         self.hidden_layers = nn.ModuleList()
