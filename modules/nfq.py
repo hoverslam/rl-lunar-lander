@@ -39,12 +39,13 @@ class NFQAgent(Agent):
         self.criterion = nn.MSELoss()
         self.epochs = epochs
         
-    def train(self, env, episodes: int) -> dict:
+    def train(self, env, episodes: int, max_steps: int = 1000) -> dict:
         """Train the agent on a given number of episodes.
 
         Args:
             env(_type_): An OpenAI gym environment.
             episodes (int): Number of episodes.
+            max_steps (int): Maximum number of steps per episode. Defaults to 1000.
 
         Returns:
             dict: A dictionary containing the score of each episode.
@@ -59,13 +60,16 @@ class NFQAgent(Agent):
             terminated, truncated = False, False
             score = 0
             
-            while (not terminated) and (not truncated):
+            for t in range(max_steps):
                 action = self.act(state, epsilons[episode])
                 next_state, reward, terminated, truncated, _ = env.step(action)
                 
                 self.memory.append((state, action, reward, next_state, terminated))                
                 state = next_state
-                score += reward     
+                score += reward
+                
+                if terminated or truncated:
+                    break     
             
             self.optimize()
             

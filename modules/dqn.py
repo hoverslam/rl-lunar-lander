@@ -41,12 +41,13 @@ class DQNAgent(Agent):
         self.memory = ReplayMemory(max_size=memory_size)
         self.batch_size = batch_size
         
-    def train(self, env, episodes: int) -> dict:
+    def train(self, env, episodes: int, max_steps: int = 1000) -> dict:
         """Train the agent on a given number of episodes.
 
         Args:
             env(_type_): An OpenAI gym environment.
             episodes (int): Number of episodes.
+            max_steps (int): Maximum number of steps per episode. Defaults to 1000.
 
         Returns:
             dict: A dictionary containing the score of each episode.
@@ -60,7 +61,7 @@ class DQNAgent(Agent):
             terminated, truncated = False, False
             score = 0
             
-            while (not terminated) and (not truncated):
+            for t in range(max_steps):
                 action = self.act(state, epsilons[episode])
                 next_state, reward, terminated, truncated, _ = env.step(action)
                 
@@ -71,6 +72,9 @@ class DQNAgent(Agent):
                 # Only start training when replay memory is big enough
                 if len(self.memory) > (5 * self.batch_size):
                     self.optimize()
+                    
+                if truncated or terminated:
+                    break
                     
             results["episode"].append(episode+1)
             results["score"].append(score)

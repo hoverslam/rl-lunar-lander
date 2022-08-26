@@ -36,11 +36,13 @@ class Agent(ABC):
         self.rng = np.random.default_rng()
         
     @abstractmethod
-    def train(self, episodes: int) -> dict:
+    def train(self, env, episodes: int, max_steps: int) -> dict:
         """Train the agent on a given number of episodes.
 
         Args:
+            env(_type_): An OpenAI gym environment.
             episodes (int): Number of episodes.
+            max_steps (int): Maximum number of steps per episode.
 
         Raises:
             NotImplementedError: Implement in subclass.
