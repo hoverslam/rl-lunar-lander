@@ -126,7 +126,7 @@ class Agent(ABC):
             using .pt file extension. 
         """
         path = os.path.join(os.getcwd(), "models", file_name)
-        torch.save(self.model, path)
+        torch.save(self.model.state_dict(), path)
     
     def load_model(self, file_name: str) -> None:
         """Load model.
@@ -135,7 +135,7 @@ class Agent(ABC):
             file_name (str): File name of the model.
         """
         path = os.path.join(os.getcwd(), "models", file_name)
-        self.model = torch.load(path)
+        self.model.load_state_dict(torch.load(path, map_location=self.model.device))
     
     @staticmethod
     def plot_results(results: dict, title: str) -> None:
