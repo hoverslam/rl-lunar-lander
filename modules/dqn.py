@@ -41,7 +41,7 @@ class DQNAgent(Agent):
         self.memory = ReplayMemory(max_size=memory_size)
         self.batch_size = batch_size
         
-    def train(self, env, episodes) -> dict:
+    def train(self, env, episodes: int) -> dict:
         """Train the agent on a given number of episodes.
 
         Args:
