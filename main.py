@@ -42,7 +42,8 @@ def evaluate(episodes: int, algo: str, render: bool) -> None:
     print("Average score: {:.2f}".format(average))
     print("----------------------")
     
-    a.plot_results(results, a.name)
+    print("")
+    input("Press ENTER to exit.")
     
     env.close()
 
