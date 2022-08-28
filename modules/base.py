@@ -155,5 +155,6 @@ class Agent(ABC):
         ax.legend()
         ax.set_xlabel("Episode")
         ax.set_ylabel("Score")
+        plt.axhline(y=200, color="black", linestyle="dashed", alpha=0.2)
         plt.title(title)        
         plt.show()
