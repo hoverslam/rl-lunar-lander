@@ -16,7 +16,7 @@ class DQNAgent(Agent):
     
     def __init__(self, gamma: float, epsilon_init: float, epsilon_min: float, epsilon_decay: float, 
                  alpha: float, input_dim: int, output_dim: int, hidden_dims: list[int],
-                 memory_size: int = 10000, batch_size: int = 256) -> None:
+                 memory_size: int = 10000, batch_size: int = 256, target_net_frequency: int = 1) -> None:
         """An agent implemented with a Deep Q-Network.
 
         Args:
@@ -30,6 +30,7 @@ class DQNAgent(Agent):
             hidden_dims (list[int]): A list with units per layer.
             memory_size (int): Size of replay memory. Defaults to 10000.
             batch_size (int): Number of samples drawn from the replay memory. Defaults to 512.
+            target_net_frequency (int): Update frequency of the target network in episodes. Defaults to 1.
         """
         super().__init__(gamma, epsilon_init, epsilon_min, epsilon_decay, 
                          alpha, input_dim, output_dim, hidden_dims)
@@ -40,6 +41,11 @@ class DQNAgent(Agent):
         self.criterion = nn.MSELoss()
         self.memory = ReplayMemory(max_size=memory_size)
         self.batch_size = batch_size
+        self.target_net_frequency = target_net_frequency
+        
+        # Target network
+        self.target_net = DQN(input_dim, output_dim, hidden_dims)
+        self.target_net.eval()
         
     def train(self, env, episodes: int, max_steps: int = 1000) -> dict:
         """Train the agent on a given number of episodes.
@@ -72,9 +78,12 @@ class DQNAgent(Agent):
                 # Only start training when replay memory is big enough
                 if len(self.memory) > (5 * self.batch_size):
                     self.optimize()
-                    
+  
                 if truncated or terminated:
                     break
+                
+            if episode % self.target_net_frequency == 0:
+                self.target_net.load_state_dict(self.model.state_dict())
                     
             results["episode"].append(episode+1)
             results["score"].append(score)
@@ -84,7 +93,6 @@ class DQNAgent(Agent):
     def optimize(self) -> None:
         """Fit agent model.
         """
-        # TODO: Implement target network to make training (much) more stable.
         states, actions, rewards, next_states, terminated = self.memory.sample(self.batch_size)
         states = torch.tensor(states, dtype=torch.float32, device=self.model.device)
         actions = torch.tensor(actions, dtype=torch.int64, device=self.model.device).unsqueeze(1)
@@ -93,7 +101,7 @@ class DQNAgent(Agent):
         terminated = torch.tensor(terminated, dtype=torch.int8, device=self.model.device)
 
         pred_qs = self.model(states).gather(1, actions).squeeze()
-        max_qs = self.model(next_states).detach().max(1)[0]
+        max_qs = self.target_net(next_states).detach().max(1)[0]
         target_qs = rewards + self.gamma * max_qs * (1 - terminated)
         
         self.optimizer.zero_grad()
