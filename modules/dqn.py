@@ -15,7 +15,7 @@ class DQNAgent():
     
     def __init__(self, gamma: float, epsilon_init: float, epsilon_min: float, epsilon_decay: float, 
                  alpha: float, input_dim: int, output_dim: int, hidden_dims: list[int],
-                 memory_size: int = 10000, batch_size: int = 256, target_net_frequency: int = 1) -> None:
+                 memory_size: int = 50000, batch_size: int = 128, target_net_frequency: int = 5) -> None:
         """An agent implemented with a Deep Q-Network.
 
         Args:
@@ -81,7 +81,7 @@ class DQNAgent():
                 score += reward
 
                 # Only start training when replay memory is big enough
-                if len(self.memory) > (5 * self.batch_size):
+                if len(self.memory) > (10 * self.batch_size):
                     self.optimize()
   
                 if truncated or terminated:
