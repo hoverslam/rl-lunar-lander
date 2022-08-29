@@ -15,7 +15,7 @@ agents = {"NFQ": NFQAgent(gamma=0.99, epsilon_init=1.0, epsilon_min=0.2, epsilon
                           alpha=0.0001, input_dim=8, output_dim=4, hidden_dims=[128, 64])}
 
 @app.command()
-def train(episodes: int, algo: str) -> None:
+def train(algo: str, episodes: int) -> None:
     env = gym.make("LunarLander-v2", new_step_api=True)
 
     a = agents[algo]
@@ -27,7 +27,7 @@ def train(episodes: int, algo: str) -> None:
     env.close()
     
 @app.command()
-def evaluate(episodes: int, algo: str, render: bool) -> None:
+def evaluate(algo: str, episodes: int, render: bool) -> None:
     if render:
         env = gym.make("LunarLander-v2", render_mode="human", new_step_api=True)
     else:
