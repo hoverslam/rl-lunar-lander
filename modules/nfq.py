@@ -103,7 +103,7 @@ class NFQAgent():
             loss.backward()
             self.optimizer.step()
             
-    def play(self, env, episodes: int) -> None:
+    def play(self, env, episodes: int) -> dict:
         """Play a given number of episodes.
 
         Args:
