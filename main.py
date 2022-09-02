@@ -14,7 +14,7 @@ agents = {"NFQ": NFQAgent(gamma=0.99, epsilon_init=1.0, epsilon_min=0.2, epsilon
                           alpha=0.001, input_dim=8, output_dim=4, hidden_dims=[128, 64]),
           "DQN": DQNAgent(gamma=0.99, epsilon_init=1.0, epsilon_min=0.1, epsilon_decay=0.9, 
                           alpha=0.0001, input_dim=8, output_dim=4, hidden_dims=[256, 128]),
-          "VPG": VPGAgent(gamma=0.99, alpha=0.001, input_dim=8, output_dim=4, hidden_dims=[256, 256, 128])}
+          "VPG": VPGAgent(gamma=0.999, alpha=0.0001, input_dim=8, output_dim=4, hidden_dims=[1024, 512])}
 
 
 def plot_results(results: dict, title: str) -> None:
