@@ -32,7 +32,7 @@ def plot_results(results: dict, title: str) -> None:
 
 @app.command()
 def train(algo: str, episodes: int) -> None:
-    env = gym.make("LunarLander-v2", new_step_api=True)
+    env = gym.make("LunarLander-v2")
 
     a = agents[algo]
     results = a.train(env, episodes)
@@ -45,9 +45,9 @@ def train(algo: str, episodes: int) -> None:
 @app.command()
 def evaluate(algo: str, episodes: int, render: bool) -> None:
     if render:
-        env = gym.make("LunarLander-v2", render_mode="human", new_step_api=True)
+        env = gym.make("LunarLander-v2", render_mode="human")
     else:
-        env = gym.make("LunarLander-v2", new_step_api=True)
+        env = gym.make("LunarLander-v2")
         
     a = agents[algo]
     a.load_model("{}.pt".format(algo))

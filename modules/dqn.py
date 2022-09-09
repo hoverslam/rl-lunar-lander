@@ -68,7 +68,7 @@ class DQNAgent():
         results = {"episode": [], "score": []}
         
         for episode in tqdm(range(episodes)):
-            state = env.reset()
+            state, _ = env.reset()
             terminated, truncated = False, False
             score = 0
             
@@ -128,7 +128,7 @@ class DQNAgent():
         results = {"episode": [], "score": []}
         
         for episode in range(episodes):
-            state = env.reset()
+            state, _ = env.reset()
             terminated, truncated = False, False
             score = 0
             

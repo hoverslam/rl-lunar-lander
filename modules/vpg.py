@@ -49,7 +49,7 @@ class VPGAgent():
         results = {"episode": [], "score": []}
         
         for episode in tqdm(range(episodes)):
-            state = env.reset()
+            state, _ = env.reset()
             terminated, truncated = False, False
             states = []
             actions = []
@@ -135,7 +135,7 @@ class VPGAgent():
         results = {"episode": [], "score": []}
         
         for episode in range(episodes):
-            state = env.reset()
+            state, _ = env.reset()
             terminated, truncated = False, False
             score = 0
             
