@@ -37,7 +37,7 @@ Reference: [M. Riedmiller (2005) Neural Fitted Q Iteration - First Experiences w
 
 ## Deep Q-Network (DQN)
 
-| Training                                                    | After 1000 episodes                                |
+| Training                                                    | After 1000 (!) episodes                            |
 |:-----------------------------------------------------------:|:--------------------------------------------------:|
 | <img src="../media/DQN_training.png?raw=true" height="300"> | <img src="../media/DQN.gif?raw=true" height="300"> |
 
