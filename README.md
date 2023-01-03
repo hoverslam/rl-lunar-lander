@@ -63,11 +63,11 @@ The score is the average return over 100 episodes on the trained agent.
 
 ## Dependencies
 
-- Python v3.10.4
-- Gym v0.26.0
-- Matplotlib v3.5.3
-- Numpy v1.23.3
-- Pandas v1.4.4
-- PyTorch v1.12.1
+- Python v3.10.9
+- Gym v0.26.2
+- Matplotlib v3.6.2
+- Numpy v1.24.1
+- Pandas v1.5.2
+- PyTorch v1.13.1
 - Tqdm v4.64.1
-- Typer v0.6.1
+- Typer v0.7.0
