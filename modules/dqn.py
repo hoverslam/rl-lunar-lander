@@ -12,8 +12,8 @@ from tqdm import tqdm
 
 
 class DQNAgent():
-    
-    def __init__(self, gamma: float, epsilon_init: float, epsilon_min: float, epsilon_decay: float, 
+
+    def __init__(self, gamma: float, epsilon_init: float, epsilon_min: float, epsilon_decay: float,
                  alpha: float, input_dim: int, output_dim: int, hidden_dims: list[int],
                  memory_size: int = 50000, batch_size: int = 128, target_net_frequency: int = 5) -> None:
         """An agent implemented with a Deep Q-Network.
@@ -30,8 +30,8 @@ class DQNAgent():
             memory_size (int): Size of replay memory. Defaults to 10000.
             batch_size (int): Number of samples drawn from the replay memory. Defaults to 512.
             target_net_frequency (int): Update frequency of the target network in episodes. Defaults to 1.
-        """        
-        self.gamma = gamma        
+        """
+        self.gamma = gamma
         self.epsilon_init = epsilon_init
         self.epsilon_min = epsilon_min
         self.epsilon_decay = epsilon_decay
@@ -47,11 +47,11 @@ class DQNAgent():
         self.memory = ReplayMemory(max_size=memory_size)
         self.batch_size = batch_size
         self.target_net_frequency = target_net_frequency
-        
+
         # Target network
         self.target_net = DQN(input_dim, output_dim, hidden_dims)
         self.target_net.eval()
-        
+
     def train(self, env, episodes: int, max_steps: int = 1000) -> dict:
         """Train the agent on a given number of episodes.
 
@@ -66,16 +66,16 @@ class DQNAgent():
         self.model.train()
         epsilons = self.decay_schedule(self.epsilon_init, self.epsilon_min, self.epsilon_decay, episodes)
         results = {"episode": [], "score": []}
-        
+
         for episode in tqdm(range(episodes)):
             state, _ = env.reset()
             terminated, truncated = False, False
             score = 0
-            
+
             for t in range(max_steps):
                 action = self.act(state, epsilons[episode])
                 next_state, reward, terminated, truncated, _ = env.step(action)
-                
+
                 self.memory.append((state, action, reward, next_state, terminated))
                 state = next_state
                 score += reward
@@ -83,18 +83,18 @@ class DQNAgent():
                 # Only start training when replay memory is big enough
                 if len(self.memory) > (10 * self.batch_size):
                     self.optimize()
-  
+
                 if truncated or terminated:
                     break
-                
+
             if episode % self.target_net_frequency == 0:
                 self.target_net.load_state_dict(self.model.state_dict())
-                    
+
             results["episode"].append(episode+1)
             results["score"].append(score)
-            
+
         return results
-    
+
     def optimize(self) -> None:
         """Fit agent model.
         """
@@ -108,7 +108,7 @@ class DQNAgent():
         pred_qs = self.model(states).gather(1, actions).squeeze()
         max_qs = self.target_net(next_states).detach().max(1)[0]
         target_qs = rewards + self.gamma * max_qs * (1 - terminated)
-        
+
         self.optimizer.zero_grad()
         loss = self.criterion(pred_qs, target_qs)
         loss.backward()
@@ -126,24 +126,24 @@ class DQNAgent():
         """
         self.model.eval()
         results = {"episode": [], "score": []}
-        
+
         for episode in range(episodes):
             state, _ = env.reset()
             terminated, truncated = False, False
             score = 0
-            
+
             while (not terminated) and (not truncated):
                 action = self.act(state)
                 state, reward, terminated, truncated, _ = env.step(action)
-                                
-                score += reward  
-        
+
+                score += reward
+
             print("{}/{}: {:.2f}".format(episode+1, episodes, score))
             results["episode"].append(episode+1)
             results["score"].append(score)
-            
-        return results      
-    
+
+        return results
+
     def act(self, state: np.ndarray, epsilon: float = 0.0) -> int:
         """Choose (optimal) action given an observation.
 
@@ -156,10 +156,10 @@ class DQNAgent():
             int: Action to take as an integer.
         """
         if torch.rand(1) < epsilon:
-            return torch.randint(high=self.output_dim, size=(1,)).item()           
+            return int(torch.randint(high=self.output_dim, size=(1,)).item())
         else:
             return self.model(state).detach().argmax().item()
-        
+
     def decay_schedule(self, init_value: float, min_value: float, decay_ratio: float, max_steps: int) -> np.ndarray:
         """Compute exponentially decaying values (e.g. epsilons) for the complete training process in advance. 
         See: Morales (2020) Grooking DRL
@@ -179,9 +179,9 @@ class DQNAgent():
         values = (values - values.min()) / (values.max() - values.min())
         values = (init_value - min_value) * values + min_value
         values = np.pad(values, (0, rem_steps), "edge")
-        
+
         return values
-    
+
     def save_model(self, file_name: str) -> None:
         """Save model.
 
@@ -191,7 +191,7 @@ class DQNAgent():
         """
         path = os.path.join(os.getcwd(), "models", file_name)
         torch.save(self.model.state_dict(), path)
-    
+
     def load_model(self, file_name: str) -> None:
         """Load model.
 
@@ -201,23 +201,23 @@ class DQNAgent():
         path = os.path.join(os.getcwd(), "models", file_name)
         self.model.load_state_dict(torch.load(path, map_location=self.model.device))
 
-  
+
 class DQN(nn.Module):
-    
+
     def __init__(self, input_dim: int, output_dim: int, hidden_dims: list[int]) -> None:
         """Initialize model.
-        """  
-        super(DQN, self).__init__()        
+        """
+        super(DQN, self).__init__()
         self.input_layer = nn.Linear(input_dim, hidden_dims[0])
         self.hidden_layers = nn.ModuleList()
         for i in range(len(hidden_dims)-1):
             hidden_layer = nn.Linear(hidden_dims[i], hidden_dims[i+1])
             self.hidden_layers.append(hidden_layer)
         self.output_layer = nn.Linear(hidden_dims[-1], output_dim)
-        
+
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.to(self.device)
-    
+
     def forward(self, state) -> torch.Tensor:
         """Make a prediction given an observation.
 
@@ -231,17 +231,17 @@ class DQN(nn.Module):
             x = torch.tensor(state, dtype=torch.float32, device=self.device)
         else:
             x = state
-            
+
         x = F.relu(self.input_layer(x))
         for hidden_layer in self.hidden_layers:
             x = F.relu(hidden_layer(x))
         x = self.output_layer(x)
-        
+
         return x
-    
-    
+
+
 class ReplayMemory():
-    
+
     def __init__(self, max_size: int) -> None:
         """Initialize memory.
 
@@ -252,7 +252,7 @@ class ReplayMemory():
         self.size = 0
         self.index = 0
         self.rng = np.random.default_rng()
-        
+
         self.states = [None] * max_size
         self.actions = [None] * max_size
         self.rewards = [None] * max_size
@@ -266,7 +266,7 @@ class ReplayMemory():
             int: Size of memory.
         """
         return self.size
-    
+
     def append(self, experience: tuple) -> None:
         """Add experience to memory.
 
@@ -279,10 +279,10 @@ class ReplayMemory():
         self.rewards[self.index] = experience[2]
         self.next_states[self.index] = experience[3]
         self.terminated[self.index] = experience[4]
-        
+
         self.size = min(self.size + 1, self.max_size)
         self.index = (self.index + 1) % self.max_size
-        
+
     def sample(self, batch_size: int) -> list:
         """Return a sample of experiences.
 
@@ -293,11 +293,11 @@ class ReplayMemory():
             list: A number of experiences given by a batch size.
         """
         idx = self.rng.choice(self.size, batch_size, replace=False)
-        
-        return (
+
+        return [
             np.stack([self.states[i] for i in idx]),
             np.array([self.actions[i] for i in idx]),
             np.array([self.rewards[i] for i in idx]),
             np.stack([self.next_states[i] for i in idx]),
             np.array([self.terminated[i] for i in idx])
-        )
+        ]

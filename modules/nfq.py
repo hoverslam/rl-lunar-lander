@@ -12,9 +12,9 @@ from tqdm import tqdm
 
 
 class NFQAgent():
-    
-    def __init__(self, gamma: float, epsilon_init: float, epsilon_min: float, epsilon_decay: float, 
-                 alpha: float, input_dim: int, output_dim: int, hidden_dims: list[int], 
+
+    def __init__(self, gamma: float, epsilon_init: float, epsilon_min: float, epsilon_decay: float,
+                 alpha: float, input_dim: int, output_dim: int, hidden_dims: list[int],
                  epochs: int = 30) -> None:
         """An agent implemented by Neural Fitted Q Iteration.
 
@@ -29,7 +29,7 @@ class NFQAgent():
             hidden_dims (list[int]): A list with units per layer.
             epochs (int): Number of training passes of the memory every episode. Defaults to 50.
         """
-        self.gamma = gamma        
+        self.gamma = gamma
         self.epsilon_init = epsilon_init
         self.epsilon_min = epsilon_min
         self.epsilon_decay = epsilon_decay
@@ -43,7 +43,7 @@ class NFQAgent():
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=alpha)
         self.criterion = nn.MSELoss()
         self.epochs = epochs
-        
+
     def train(self, env, episodes: int, max_steps: int = 1000) -> dict:
         """Train the agent on a given number of episodes.
 
@@ -58,31 +58,31 @@ class NFQAgent():
         self.model.train()
         epsilons = self.decay_schedule(self.epsilon_init, self.epsilon_min, self.epsilon_decay, episodes)
         results = {"episode": [], "score": []}
-        
+
         for episode in tqdm(range(episodes)):
             state, _ = env.reset()
             self.memory = []
             terminated, truncated = False, False
             score = 0
-            
+
             for t in range(max_steps):
                 action = self.act(state, epsilons[episode])
                 next_state, reward, terminated, truncated, _ = env.step(action)
-                
-                self.memory.append((state, action, reward, next_state, terminated))                
+
+                self.memory.append((state, action, reward, next_state, terminated))
                 state = next_state
                 score += reward
-                
+
                 if terminated or truncated:
-                    break     
-            
+                    break
+
             self.optimize()
-            
+
             results["episode"].append(episode+1)
             results["score"].append(score)
-            
-        return results              
-            
+
+        return results
+
     def optimize(self) -> None:
         """Fit agent model.
         """
@@ -102,7 +102,7 @@ class NFQAgent():
             loss = self.criterion(pred_qs, target_qs)
             loss.backward()
             self.optimizer.step()
-            
+
     def play(self, env, episodes: int) -> dict:
         """Play a given number of episodes.
 
@@ -115,24 +115,24 @@ class NFQAgent():
         """
         self.model.eval()
         results = {"episode": [], "score": []}
-        
+
         for episode in range(episodes):
             state, _ = env.reset()
             terminated, truncated = False, False
             score = 0
-            
+
             while (not terminated) and (not truncated):
                 action = self.act(state)
                 state, reward, terminated, truncated, _ = env.step(action)
-                                
-                score += reward  
-        
+
+                score += reward
+
             print("{}/{}: {:.2f}".format(episode+1, episodes, score))
             results["episode"].append(episode+1)
             results["score"].append(score)
-            
-        return results      
-    
+
+        return results
+
     def act(self, state: np.ndarray, epsilon: float = 0.0) -> int:
         """Choose (optimal) action given an observation.
 
@@ -145,7 +145,7 @@ class NFQAgent():
             int: Action to take as an integer.
         """
         if torch.rand(1) < epsilon:
-            return torch.randint(high=self.output_dim, size=(1,)).item()
+            return int(torch.randint(high=self.output_dim, size=(1,)).item())
         else:
             return self.model(state).detach().argmax().item()
 
@@ -168,9 +168,9 @@ class NFQAgent():
         values = (values - values.min()) / (values.max() - values.min())
         values = (init_value - min_value) * values + min_value
         values = np.pad(values, (0, rem_steps), "edge")
-        
+
         return values
-    
+
     def save_model(self, file_name: str) -> None:
         """Save model.
 
@@ -180,7 +180,7 @@ class NFQAgent():
         """
         path = os.path.join(os.getcwd(), "models", file_name)
         torch.save(self.model.state_dict(), path)
-    
+
     def load_model(self, file_name: str) -> None:
         """Load model.
 
@@ -189,15 +189,15 @@ class NFQAgent():
         """
         path = os.path.join(os.getcwd(), "models", file_name)
         self.model.load_state_dict(torch.load(path, map_location=self.model.device))
-            
+
 
 class FCQ(nn.Module):
-    
+
     def __init__(self, input_dim: int, output_dim: int, hidden_dims: list[int]) -> None:
         """Initialize model.
-        """        
+        """
         super(FCQ, self).__init__()
-        
+
         # Nice way to make the network architecture flexible. See: Morales (2020) Grooking DRL
         self.input_layer = nn.Linear(input_dim, hidden_dims[0])
         self.hidden_layers = nn.ModuleList()
@@ -205,10 +205,10 @@ class FCQ(nn.Module):
             hidden_layer = nn.Linear(hidden_dims[i], hidden_dims[i+1])
             self.hidden_layers.append(hidden_layer)
         self.output_layer = nn.Linear(hidden_dims[-1], output_dim)
-        
+
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        self.to(self.device)        
-        
+        self.to(self.device)
+
     def forward(self, state: np.ndarray) -> torch.Tensor:
         """Make a prediction given an observation.
 

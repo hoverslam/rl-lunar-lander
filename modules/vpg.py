@@ -12,8 +12,8 @@ from tqdm import tqdm
 
 
 class VPGAgent():
-    
-    def __init__(self, gamma: float, alpha: float, input_dim: int, output_dim: int, 
+
+    def __init__(self, gamma: float, alpha: float, input_dim: int, output_dim: int,
                  hidden_dims: list[int]) -> None:
         """An agent using the Vanilla Policy Gradient algorithm.
 
@@ -24,16 +24,16 @@ class VPGAgent():
             output_dim (int): Number of available actions (i.e. action space)
             hidden_dims (list[int]): A list with units per layer.
         """
-        self.gamma = gamma        
+        self.gamma = gamma
         self.alpha = alpha
         self.input_dim = input_dim
         self.output_dim = output_dim
         self.hidden_dims = hidden_dims
-        
+
         self.name = "Vanilla Policy Gradient"
         self.policy = PolicyNet(input_dim, output_dim, hidden_dims)
         self.optimizer = torch.optim.Adam(self.policy.parameters(), lr=alpha)
-    
+
     def train(self, env, episodes: int, max_steps: int = 1000) -> dict:
         """Train the agent on a given number of episodes.
 
@@ -47,7 +47,7 @@ class VPGAgent():
         """
         self.policy.train()
         results = {"episode": [], "score": []}
-        
+
         for episode in tqdm(range(episodes)):
             state, _ = env.reset()
             terminated, truncated = False, False
@@ -55,29 +55,29 @@ class VPGAgent():
             actions = []
             rewards = []
             score = 0
-            
+
             for _ in range(max_steps):
                 action = self.act(state)
                 next_state, reward, terminated, truncated, _ = env.step(action)
-                
+
                 states.append(state)
                 actions.append(action)
                 rewards.append(reward)
-                
-                state = next_state                
+
+                state = next_state
                 score += reward
-                
+
                 if terminated or truncated:
                     break
-            
-            discounted_returns = self.calculate_returns(rewards)    
+
+            discounted_returns = self.calculate_returns(rewards)
             self.optimize(states, actions, discounted_returns)
-            
+
             results["episode"].append(episode+1)
             results["score"].append(score)
-            
+
         return results
-    
+
     def calculate_returns(self, rewards: list[float]) -> np.ndarray:
         """Discount rewards for every step in an episode.
 
@@ -93,9 +93,9 @@ class VPGAgent():
         for t in reversed(range(T)):
             future_return = rewards[t] + self.gamma * future_return
             returns[t] = future_return
-            
+
         return returns
-            
+
     def optimize(self, states: list[np.ndarray], actions: list[int], returns: np.ndarray) -> None:
         """Fit policy.
 
@@ -107,20 +107,20 @@ class VPGAgent():
         states = np.array(states, dtype=np.float32)
         actions = torch.tensor(actions, dtype=torch.int8, device=self.policy.device)
         returns = torch.tensor(returns, dtype=torch.float32, device=self.policy.device)
-        
+
         mean = returns.mean()
         std = returns.std()
         normalized_returns = (returns - mean) / std.clamp_min(1e-10)
-        
+
         logits = self.policy(states)
         pd = torch.distributions.Categorical(logits=logits)
         log_probs = pd.log_prob(actions)
-        
+
         self.optimizer.zero_grad()
         loss = (-1 * log_probs * normalized_returns).sum()
         loss.backward()
         self.optimizer.step()
-    
+
     def play(self, env, episodes: int) -> dict:
         """Play a given number of episodes.
 
@@ -133,24 +133,24 @@ class VPGAgent():
         """
         self.policy.eval()
         results = {"episode": [], "score": []}
-        
+
         for episode in range(episodes):
             state, _ = env.reset()
             terminated, truncated = False, False
             score = 0
-            
+
             while (not terminated) and (not truncated):
                 action = self.act(state)
                 state, reward, terminated, truncated, _ = env.step(action)
-                                
-                score += reward  
-        
+
+                score += reward
+
             print("{}/{}: {:.2f}".format(episode+1, episodes, score))
             results["episode"].append(episode+1)
             results["score"].append(score)
-            
+
         return results
-    
+
     def act(self, state: np.ndarray) -> int:
         """Returns (optimal) action given an observation.
 
@@ -162,10 +162,10 @@ class VPGAgent():
         """
         logits = self.policy(state)
         pd = torch.distributions.Categorical(logits=logits)
-        action = pd.sample().item()
-        
+        action = int(pd.sample().item())
+
         return action
-    
+
     def save_model(self, file_name: str) -> None:
         """Save model.
 
@@ -175,7 +175,7 @@ class VPGAgent():
         """
         path = os.path.join(os.getcwd(), "models", file_name)
         torch.save(self.policy.state_dict(), path)
-    
+
     def load_model(self, file_name: str) -> None:
         """Load model.
 
@@ -184,30 +184,30 @@ class VPGAgent():
         """
         path = os.path.join(os.getcwd(), "models", file_name)
         self.policy.load_state_dict(torch.load(path, map_location=self.policy.device))
-        
+
 
 class PolicyNet(nn.Module):
-    
+
     def __init__(self, input_dim: int, output_dim: int, hidden_dims: list[int]) -> None:
         """Initialize model.
-                
+
         Args:
             input_dim (int): Number of input dimensions (i.e. state space)
             output_dim (int): Number of available actions (i.e. action space)
             hidden_dims (list[int]): A list with units per layer.
         """
         super(PolicyNet, self).__init__()
-        
+
         self.input_layer = nn.Linear(input_dim, hidden_dims[0])
         self.hidden_layers = nn.ModuleList()
         for i in range(len(hidden_dims)-1):
             hidden_layer = nn.Linear(hidden_dims[i], hidden_dims[i+1])
             self.hidden_layers.append(hidden_layer)
         self.output_layer = nn.Linear(hidden_dims[-1], output_dim)
-        
+
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.to(self.device)
-        
+
     def forward(self, state: np.ndarray) -> torch.Tensor:
         """Returns a prediction given an observation.
 
