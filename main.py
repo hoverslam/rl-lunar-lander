@@ -6,14 +6,15 @@ import matplotlib.pyplot as plt
 from modules.nfq import NFQAgent
 from modules.dqn import DQNAgent
 from modules.vpg import VPGAgent
+from modules.a2c import A2CAgent
 
 
 app = typer.Typer()
 
 agents = {"NFQ": NFQAgent(gamma=0.99, epsilon_init=1.0, epsilon_min=0.2, epsilon_decay=0.9,
                           alpha=0.001, input_dim=8, output_dim=4, hidden_dims=[128, 64]),
-          "DQN": DQNAgent(gamma=0.99, epsilon_init=1.0, epsilon_min=0.1, epsilon_decay=0.9,
-                          alpha=0.0001, input_dim=8, output_dim=4, hidden_dims=[256, 128]),
+          "DQN": DQNAgent(gamma=0.999, epsilon_init=1.0, epsilon_min=0.1, epsilon_decay=0.8, alpha=0.0005,
+                          input_dim=8, output_dim=4, hidden_dims=[128, 64], batch_size=64),
           "VPG": VPGAgent(gamma=0.999, alpha=0.0001, input_dim=8, output_dim=4, hidden_dims=[1024, 512])}
 
 
