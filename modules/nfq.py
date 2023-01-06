@@ -8,7 +8,7 @@ import numpy as np
 import torch
 from torch import nn
 import torch.nn.functional as F
-from tqdm import tqdm
+from tqdm import trange
 
 
 class NFQAgent():
@@ -59,7 +59,8 @@ class NFQAgent():
         epsilons = self.decay_schedule(self.epsilon_init, self.epsilon_min, self.epsilon_decay, episodes)
         results = {"episode": [], "score": []}
 
-        for episode in tqdm(range(episodes)):
+        pbar = trange(episodes)
+        for episode in pbar:
             state, _ = env.reset()
             self.memory = []
             terminated, truncated = False, False
@@ -78,6 +79,7 @@ class NFQAgent():
 
             self.optimize()
 
+            pbar.set_description(f"Score={score:.2f}")
             results["episode"].append(episode+1)
             results["score"].append(score)
 

@@ -8,7 +8,7 @@ import numpy as np
 import torch
 from torch import nn
 import torch.nn.functional as F
-from tqdm import tqdm
+from tqdm import trange
 
 
 class VPGAgent():
@@ -48,7 +48,8 @@ class VPGAgent():
         self.policy.train()
         results = {"episode": [], "score": []}
 
-        for episode in tqdm(range(episodes)):
+        pbar = trange(episodes)
+        for episode in pbar:
             state, _ = env.reset()
             terminated, truncated = False, False
             states = []
@@ -73,6 +74,7 @@ class VPGAgent():
             discounted_returns = self.calculate_returns(rewards)
             self.optimize(states, actions, discounted_returns)
 
+            pbar.set_description(f"Score={score:.2f}")
             results["episode"].append(episode+1)
             results["score"].append(score)
 

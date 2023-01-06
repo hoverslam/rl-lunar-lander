@@ -8,7 +8,7 @@ import numpy as np
 import torch
 from torch import nn
 import torch.nn.functional as F
-from tqdm import tqdm
+from tqdm import trange
 
 
 class DQNAgent():
@@ -67,7 +67,8 @@ class DQNAgent():
         epsilons = self.decay_schedule(self.epsilon_init, self.epsilon_min, self.epsilon_decay, episodes)
         results = {"episode": [], "score": []}
 
-        for episode in tqdm(range(episodes)):
+        pbar = trange(episodes)
+        for episode in pbar:
             state, _ = env.reset()
             terminated, truncated = False, False
             score = 0
@@ -90,6 +91,7 @@ class DQNAgent():
             if episode % self.target_net_frequency == 0:
                 self.target_net.load_state_dict(self.model.state_dict())
 
+            pbar.set_description(f"Score={score:.2f}")
             results["episode"].append(episode+1)
             results["score"].append(score)
 
