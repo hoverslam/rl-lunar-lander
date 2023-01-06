@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 from modules.nfq import NFQAgent
 from modules.dqn import DQNAgent
 from modules.vpg import VPGAgent
-from modules.a2c import A2CAgent
 
 
 app = typer.Typer()
