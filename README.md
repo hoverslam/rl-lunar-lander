@@ -58,7 +58,7 @@ The score is the average return over 100 episodes on the trained agent.
 |                           |  Score |
 |---------------------------|:------:|
 | Neural Fitted Q Iteration | -39.08 |
-| Deep Q-Network            | 259.08 |
+| Deep Q-Network            | 271.47 |
 | Vanilla Policy Gradient   | 166.73 |
 
 ## Dependencies
