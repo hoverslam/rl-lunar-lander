@@ -31,7 +31,7 @@ Run &nbsp;&nbsp;&nbsp;&nbsp; `main.py evaluate <agent> <episodes> <render>` &nbs
 
 | Training                                                    | After 3000 episodes                                |
 |:-----------------------------------------------------------:|:--------------------------------------------------:|
-| <img src="../media/NFQ_training.png?raw=true" height="300"> | <img src="../media/NFQ.gif?raw=true" height="300"> |
+| <img src="img/nfq_training.png?raw=true" height="300">      | <img src="img/nfq.gif?raw=true" height="300">      |
 
 Reference: [M. Riedmiller (2005) Neural Fitted Q Iteration - First Experiences with a Data Efficient Neural Reinforcement Learning Method](https://ml.informatik.uni-freiburg.de/former/_media/publications/rieecml05.pdf)
 
@@ -39,7 +39,7 @@ Reference: [M. Riedmiller (2005) Neural Fitted Q Iteration - First Experiences w
 
 | Training                                                    | After 1000 (!) episodes                            |
 |:-----------------------------------------------------------:|:--------------------------------------------------:|
-| <img src="../media/DQN_training.png?raw=true" height="300"> | <img src="../media/DQN.gif?raw=true" height="300"> |
+| <img src="img/dqn_training.png?raw=true" height="300">      | <img src="img/dqn.gif?raw=true" height="300">      |
 
 Reference: [V. Mnih, K. Kavukcuoglu, D. Silver, A. Graves, I. Antonoglou, D. Wierstra, and M. Riedmiller (2013) Playing Atari with Deep Reinforcement Learning](https://arxiv.org/abs/1312.5602)
 
@@ -47,7 +47,7 @@ Reference: [V. Mnih, K. Kavukcuoglu, D. Silver, A. Graves, I. Antonoglou, D. Wie
 
 | Training                                                    | After 5000 episodes                                |
 |:-----------------------------------------------------------:|:--------------------------------------------------:|
-| <img src="../media/VPG_training.png?raw=true" height="300"> | <img src="../media/VPG.gif?raw=true" height="300"> |
+| <img src="img/vpg_training.png?raw=true" height="300">      | <img src="img/vpg.gif?raw=true" height="300">      |
 
 Reference: [R. Sutton, and A. Barto (2018) Reinforcement Learning: An Introduction, p. 328](http://incompleteideas.net/book/the-book.html)
 
