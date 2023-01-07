@@ -1,7 +1,5 @@
 import gym
 import typer
-import pandas as pd
-import matplotlib.pyplot as plt
 
 from modules.nfq import NFQAgent
 from modules.dqn import DQNAgent
@@ -17,29 +15,13 @@ agents = {"NFQ": NFQAgent(gamma=0.99, epsilon_init=1.0, epsilon_min=0.2, epsilon
           "VPG": VPGAgent(gamma=0.999, alpha=0.0001, input_dim=8, output_dim=4, hidden_dims=[1024, 512])}
 
 
-def plot_results(results: dict, title: str) -> None:
-    results = pd.DataFrame(results)
-    results["sma100"] = results["score"].rolling(100).mean()
-    _, ax = plt.subplots()
-    ax.plot(results["episode"], results["sma100"], c="red", label="SMA100")
-    ax.scatter(results["episode"], results["score"], s=2, alpha=0.5)
-    ax.legend()
-    ax.set_xlabel("Episode")
-    ax.set_ylabel("Score")
-    plt.axhline(y=200, color="black", linestyle="dashed", alpha=0.2)
-    plt.title(title)
-    plt.show()
-
-
 @app.command()
 def train(algo: str, episodes: int) -> None:
     env = gym.make("LunarLander-v2")
 
     a = agents[algo]
-    results = a.train(env, episodes)
+    a.train(env, episodes)
     a.save_model("{}.pt".format(algo))
-
-    plot_results(results, a.name)
 
     env.close()
 

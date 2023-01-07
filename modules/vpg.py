@@ -9,6 +9,7 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 from tqdm import trange
+import matplotlib.pyplot as plt
 
 
 class VPGAgent():
@@ -46,7 +47,15 @@ class VPGAgent():
             dict: A dictionary containing the score of each episode.
         """
         self.policy.train()
+
         results = {"episode": [], "score": []}
+
+        # Initialize Plot
+        fig, ax = plt.subplots()
+        point, = ax.plot(0, 0, marker="o", linestyle="", markersize=3, alpha=0.3)
+        line, = ax.plot(0, -200, color="red")
+        plt.xlim(0, episodes)
+        plt.ylim(-500, 500)
 
         pbar = trange(episodes)
         for episode in pbar:
@@ -74,9 +83,29 @@ class VPGAgent():
             discounted_returns = self.calculate_returns(rewards)
             self.optimize(states, actions, discounted_returns)
 
-            pbar.set_description(f"Score={score:.2f}")
+            # Update stats
             results["episode"].append(episode+1)
             results["score"].append(score)
+
+            # Compute simple moving average
+            sma = []
+            window_size = 100
+            for i in range(len(results["score"])):
+                if i < window_size:
+                    sma.append(sum(results["score"][:i+1]) / (i+1))
+                else:
+                    sma.append(sum(results["score"][i-window_size+1:i+1]) / window_size)
+
+            # Update plot
+            point.set_data(results["episode"], results["score"])
+            line.set_data(results["episode"], sma)
+            fig.canvas.draw()
+            plt.pause(1e-5)
+
+            # Update progress bar
+            pbar.set_description(f"score={score:.2f}")
+
+        plt.show()
 
         return results
 

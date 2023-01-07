@@ -5,10 +5,13 @@
 
 import os
 import numpy as np
+
 import torch
 from torch import nn
 import torch.nn.functional as F
+
 from tqdm import trange
+import matplotlib.pyplot as plt
 
 
 class DQNAgent():
@@ -52,20 +55,25 @@ class DQNAgent():
         self.target_net = DQN(input_dim, output_dim, hidden_dims)
         self.target_net.eval()
 
-    def train(self, env, episodes: int, max_steps: int = 1000) -> dict:
+    def train(self, env, episodes: int, max_steps: int = 1000) -> None:
         """Train the agent on a given number of episodes.
 
         Args:
             env(_type_): An OpenAI gym environment.
             episodes (int): Number of episodes.
             max_steps (int): Maximum number of steps per episode. Defaults to 1000.
-
-        Returns:
-            dict: A dictionary containing the score of each episode.
         """
         self.model.train()
         epsilons = self.decay_schedule(self.epsilon_init, self.epsilon_min, self.epsilon_decay, episodes)
+
         results = {"episode": [], "score": []}
+
+        # Initialize Plot
+        fig, ax = plt.subplots()
+        point, = ax.plot(0, 0, marker="o", linestyle="", markersize=3, alpha=0.3)
+        line, = ax.plot(0, -200, color="red")
+        plt.xlim(0, episodes)
+        plt.ylim(-500, 500)
 
         pbar = trange(episodes)
         for episode in pbar:
@@ -73,7 +81,7 @@ class DQNAgent():
             terminated, truncated = False, False
             score = 0
 
-            for t in range(max_steps):
+            for _ in range(max_steps):
                 action = self.act(state, epsilons[episode])
                 next_state, reward, terminated, truncated, _ = env.step(action)
 
@@ -91,11 +99,29 @@ class DQNAgent():
             if episode % self.target_net_frequency == 0:
                 self.target_net.load_state_dict(self.model.state_dict())
 
-            pbar.set_description(f"Score={score:.2f}")
+            # Update stats
             results["episode"].append(episode+1)
             results["score"].append(score)
 
-        return results
+            # Compute simple moving average
+            sma = []
+            window_size = 100
+            for i in range(len(results["score"])):
+                if i < window_size:
+                    sma.append(sum(results["score"][:i+1]) / (i+1))
+                else:
+                    sma.append(sum(results["score"][i-window_size+1:i+1]) / window_size)
+
+            # Update plot
+            point.set_data(results["episode"], results["score"])
+            line.set_data(results["episode"], sma)
+            fig.canvas.draw()
+            plt.pause(1e-5)
+
+            # Update progress bar
+            pbar.set_description(f"score={score:.2f}")
+
+        plt.show()
 
     def optimize(self) -> None:
         """Fit agent model.
