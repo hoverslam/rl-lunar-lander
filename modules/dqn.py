@@ -72,6 +72,7 @@ class DQNAgent():
         fig, ax = plt.subplots()
         point, = ax.plot(0, 0, marker="o", linestyle="", markersize=3, alpha=0.3)
         line, = ax.plot(0, -200, color="red")
+        plt.axhline(y=200, color="black", linestyle="dashed", alpha=0.2)
         plt.xlim(0, episodes)
         plt.ylim(-500, 500)
 
