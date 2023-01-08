@@ -12,8 +12,10 @@ The following RL algorithms were implemented:
 - Neural Fitted Q Iteration (NFQ)
 - Deep Q-Network (DQN)
 - REINFORCE with baseline / Vanilla Policy Gradient (VPG)
+- Advantage Actor Critic (AC)
 
 For better comparison, all algorithms use a 2-layer MLP (128, 64) and a discount factor of 0.999. The learning rate is set individually.
+
 
 ## How to
 
@@ -23,11 +25,12 @@ Run &nbsp;&nbsp;&nbsp;&nbsp; `main.py train <agent> <episodes>` &nbsp;&nbsp;&nbs
 
 Run &nbsp;&nbsp;&nbsp;&nbsp; `main.py evaluate <agent> <episodes> <render>` &nbsp;&nbsp;&nbsp;&nbsp; to evaluate a pre-trained agent.
 
-`<agent> (string)` &nbsp;&nbsp; NFQ, DQN or VPG
+`<agent> (string)` &nbsp;&nbsp; NFQ, DQN, VPG or AC
 
 `<episodes> (int)` &nbsp;&nbsp; Number of episodes
 
 `<render> (bool)` &nbsp;&nbsp;&nbsp;&nbsp; Display episodes on screen
+
 
 ## Neural Fitted Q Iteration
 
@@ -37,6 +40,7 @@ Run &nbsp;&nbsp;&nbsp;&nbsp; `main.py evaluate <agent> <episodes> <render>` &nbs
 
 Reference: [M. Riedmiller (2005) Neural Fitted Q Iteration - First Experiences with a Data Efficient Neural Reinforcement Learning Method](https://ml.informatik.uni-freiburg.de/former/_media/publications/rieecml05.pdf)
 
+
 ## Deep Q-Network
 
 | Training                                                    | After 1000 episodes                                |
@@ -44,6 +48,7 @@ Reference: [M. Riedmiller (2005) Neural Fitted Q Iteration - First Experiences w
 | <img src="img/dqn_training.png?raw=true" height="300">      | <img src="img/dqn.gif?raw=true" height="300">      |
 
 Reference: [V. Mnih, K. Kavukcuoglu, D. Silver, A. Graves, I. Antonoglou, D. Wierstra, and M. Riedmiller (2013) Playing Atari with Deep Reinforcement Learning](https://arxiv.org/abs/1312.5602)
+
 
 ## REINFORCE with baseline / Vanilla Policy Gradient
 
@@ -55,6 +60,16 @@ Reference: [R. Sutton, and A. Barto (2018) Reinforcement Learning: An Introducti
 
 Reference: [OpenAI: Spinning Up in Deep RL!, Vanilla Policy Gradient](https://spinningup.openai.com/en/latest/algorithms/vpg.html)
 
+
+## Advantage Actor Critic
+
+| Training                                                    | After 2000 episodes                                |
+|:-----------------------------------------------------------:|:--------------------------------------------------:|
+| <img src="img/ac_training.png?raw=true" height="300">       | <img src="img/ac.gif?raw=true" height="300">       |
+
+Reference: [R. Sutton, and A. Barto (2018) Reinforcement Learning: An Introduction, p. 332](http://incompleteideas.net/book/the-book.html)
+
+
 ## Comparison
 
 The **score** is the average return over 100 episodes on the trained agent.
@@ -64,6 +79,8 @@ The **score** is the average return over 100 episodes on the trained agent.
 | Neural Fitted Q Iteration | -24.90 |
 | Deep Q-Network            | 271.47 |
 | Vanilla Policy Gradient   | 172.49 |
+| Advantage Actor Critic    | 111.26 |
+
 
 ## Dependencies
 
