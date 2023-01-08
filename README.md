@@ -13,7 +13,7 @@ The following RL algorithms were implemented:
 - Deep Q-Network (DQN)
 - REINFORCE with baseline / Vanilla Policy Gradient (VPG)
 
-All algorithms use a 2-layer MLP (128, 64) and a discount factor of 0.999 for better comparison. The learning rate is set individually.
+For better comparison, all algorithms use a 2-layer MLP (128, 64) and a discount factor of 0.999. The learning rate is set individually.
 
 ## How to
 
@@ -45,7 +45,7 @@ Reference: [M. Riedmiller (2005) Neural Fitted Q Iteration - First Experiences w
 
 Reference: [V. Mnih, K. Kavukcuoglu, D. Silver, A. Graves, I. Antonoglou, D. Wierstra, and M. Riedmiller (2013) Playing Atari with Deep Reinforcement Learning](https://arxiv.org/abs/1312.5602)
 
-## REINFORCE with baseline / Vanilla Policy Gradient (VPG)
+## REINFORCE with baseline / Vanilla Policy Gradient
 
 | Training                                                    | After 5000 episodes                                |
 |:-----------------------------------------------------------:|:--------------------------------------------------:|
