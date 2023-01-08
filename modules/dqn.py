@@ -70,11 +70,17 @@ class DQNAgent():
 
         # Initialize Plot
         fig, ax = plt.subplots()
-        point, = ax.plot(0, 0, marker="o", linestyle="", markersize=3, alpha=0.3)
-        line, = ax.plot(0, -200, color="red")
+        points, = ax.plot(0, 0, marker=".", linestyle="", markersize=3, alpha=0.3)
+        new_point,  = ax.plot(0, 0, marker="o", linestyle="", markersize=3, color="black")
+        line, = ax.plot(0, 0, color="red", label="SMA100")
+        ax.legend(handles=[line])
+
+        plt.title(self.name)
         plt.axhline(y=200, color="black", linestyle="dashed", alpha=0.2)
         plt.xlim(0, episodes)
         plt.ylim(-500, 500)
+        plt.xlabel("Episode")
+        plt.ylabel("Score")
 
         pbar = trange(episodes)
         for episode in pbar:
@@ -114,7 +120,8 @@ class DQNAgent():
                     sma.append(sum(results["score"][i-window_size+1:i+1]) / window_size)
 
             # Update plot
-            point.set_data(results["episode"], results["score"])
+            points.set_data(results["episode"][:-1], results["score"][:-1])
+            new_point.set_data(results["episode"][-1], results["score"][-1])
             line.set_data(results["episode"], sma)
             fig.canvas.draw()
             plt.pause(1e-5)

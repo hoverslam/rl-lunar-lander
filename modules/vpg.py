@@ -32,8 +32,12 @@ class VPGAgent():
         self.hidden_dims = hidden_dims
 
         self.name = "Vanilla Policy Gradient"
-        self.policy = PolicyNet(input_dim, output_dim, hidden_dims)
-        self.optimizer = torch.optim.Adam(self.policy.parameters(), lr=alpha)
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.policy = Network(input_dim, output_dim, hidden_dims)
+        self.policy.to(self.device)
+        self.optimizer = torch.optim.Adam(self.policy.parameters(), alpha)
+
+        self.log_probs = []
 
     def train(self, env, episodes: int, max_steps: int = 1000) -> dict:
         """Train the agent on a given number of episodes.
@@ -52,36 +56,38 @@ class VPGAgent():
 
         # Initialize Plot
         fig, ax = plt.subplots()
-        point, = ax.plot(0, 0, marker="o", linestyle="", markersize=3, alpha=0.3)
-        line, = ax.plot(0, -200, color="red")
+        points, = ax.plot(0, 0, marker=".", linestyle="", markersize=3, alpha=0.3)
+        new_point,  = ax.plot(0, 0, marker="o", linestyle="", markersize=3, color="black")
+        line, = ax.plot(0, 0, color="red", label="SMA100")
+        ax.legend(handles=[line])
+
+        plt.title(self.name)
+        plt.axhline(y=200, color="black", linestyle="dashed", alpha=0.2)
         plt.xlim(0, episodes)
         plt.ylim(-500, 500)
+        plt.xlabel("Episode")
+        plt.ylabel("Score")
 
         pbar = trange(episodes)
         for episode in pbar:
             state, _ = env.reset()
             terminated, truncated = False, False
-            states = []
-            actions = []
-            rewards = []
-            score = 0
+            score = 0.0
+            memory = []
+            self.log_probs = []
 
             for _ in range(max_steps):
                 action = self.act(state)
                 next_state, reward, terminated, truncated, _ = env.step(action)
-
-                states.append(state)
-                actions.append(action)
-                rewards.append(reward)
-
+                memory.append((state, reward))
                 state = next_state
+
                 score += reward
 
                 if terminated or truncated:
                     break
 
-            discounted_returns = self.calculate_returns(rewards)
-            self.optimize(states, actions, discounted_returns)
+            self.optimize(memory)
 
             # Update stats
             results["episode"].append(episode+1)
@@ -97,7 +103,8 @@ class VPGAgent():
                     sma.append(sum(results["score"][i-window_size+1:i+1]) / window_size)
 
             # Update plot
-            point.set_data(results["episode"], results["score"])
+            points.set_data(results["episode"][:-1], results["score"][:-1])
+            new_point.set_data(results["episode"][-1], results["score"][-1])
             line.set_data(results["episode"], sma)
             fig.canvas.draw()
             plt.pause(1e-5)
@@ -109,47 +116,30 @@ class VPGAgent():
 
         return results
 
-    def calculate_returns(self, rewards: list[float]) -> np.ndarray:
-        """Discount rewards for every step in an episode.
+    def optimize(self, memory: list[tuple[np.ndarray, float]]) -> None:
+        """Optimize the agent given experiences collected during one episode.
 
         Args:
-            rewards (list[float]): List of rewards.
-
-        Returns:
-            np.ndarray: Discounted future rewards.
+            memory (list[tuple[np.ndarray, float]]): A batch of experiences (observation, reward).
         """
-        T = len(rewards)
-        returns = np.zeros(T, dtype=np.float32)
+        # Calculate discounted returns for all steps
+        rewards = [e[1] for e in memory]
+        discounted_returns = torch.zeros(len(memory), device=self.device)
         future_return = 0.0
-        for t in reversed(range(T)):
+        for t in reversed(range(len(rewards))):
             future_return = rewards[t] + self.gamma * future_return
-            returns[t] = future_return
+            discounted_returns[t] = future_return
 
-        return returns
+        # Compute loss
+        log_probs = torch.stack(self.log_probs)
+        mean = discounted_returns.mean()
+        std = discounted_returns.std()
+        normalized_discounted_returns = (discounted_returns - mean) / std.clamp_min(1e-10)
+        loss_policy = -1 * (normalized_discounted_returns * log_probs).sum()
 
-    def optimize(self, states: list[np.ndarray], actions: list[int], returns: np.ndarray) -> None:
-        """Fit policy.
-
-        Args:
-            states (list[np.ndarray]): Observations from an environment.
-            actions (list[int]): Actions taken given observations.
-            returns (np.ndarray): Discounted future returns received during an episode. 
-        """
-        states = np.array(states, dtype=np.float32)
-        actions = torch.tensor(actions, dtype=torch.int8, device=self.policy.device)
-        returns = torch.tensor(returns, dtype=torch.float32, device=self.policy.device)
-
-        mean = returns.mean()
-        std = returns.std()
-        normalized_returns = (returns - mean) / std.clamp_min(1e-10)
-
-        logits = self.policy(states)
-        pd = torch.distributions.Categorical(logits=logits)
-        log_probs = pd.log_prob(actions)
-
+        # Update policy
         self.optimizer.zero_grad()
-        loss = (-1 * log_probs * normalized_returns).sum()
-        loss.backward()
+        loss_policy.backward()
         self.optimizer.step()
 
     def play(self, env, episodes: int) -> dict:
@@ -189,13 +179,15 @@ class VPGAgent():
             state (np.ndarray): An observation from an environment.
 
         Returns:
-            int: Action to take as integer.
+            int: The choosen action.
         """
-        logits = self.policy(state)
-        pd = torch.distributions.Categorical(logits=logits)
-        action = int(pd.sample().item())
+        logits = self.policy(torch.from_numpy(state).to(self.device))
+        probs = nn.functional.softmax(logits, dim=-1)
+        dist = torch.distributions.Categorical(probs)
+        action = dist.sample()
+        self.log_probs.append(dist.log_prob(action))
 
-        return action
+        return int(action.item())
 
     def save_model(self, file_name: str) -> None:
         """Save model.
@@ -214,10 +206,10 @@ class VPGAgent():
             file_name (str): File name of the model.
         """
         path = os.path.join(os.getcwd(), "models", file_name)
-        self.policy.load_state_dict(torch.load(path, map_location=self.policy.device))
+        self.policy.load_state_dict(torch.load(path, map_location=self.device))
 
 
-class PolicyNet(nn.Module):
+class Network(nn.Module):
 
     def __init__(self, input_dim: int, output_dim: int, hidden_dims: list[int]) -> None:
         """Initialize model.
@@ -227,7 +219,7 @@ class PolicyNet(nn.Module):
             output_dim (int): Number of available actions (i.e. action space)
             hidden_dims (list[int]): A list with units per layer.
         """
-        super(PolicyNet, self).__init__()
+        super(Network, self).__init__()
 
         self.input_layer = nn.Linear(input_dim, hidden_dims[0])
         self.hidden_layers = nn.ModuleList()
@@ -236,10 +228,7 @@ class PolicyNet(nn.Module):
             self.hidden_layers.append(hidden_layer)
         self.output_layer = nn.Linear(hidden_dims[-1], output_dim)
 
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        self.to(self.device)
-
-    def forward(self, state: np.ndarray) -> torch.Tensor:
+    def forward(self, state: torch.Tensor) -> torch.Tensor:
         """Returns a prediction given an observation.
 
         Args:
@@ -248,8 +237,7 @@ class PolicyNet(nn.Module):
         Returns:
             torch.Tensor: Logits for a given oberservation.
         """
-        x = torch.tensor(state, dtype=torch.float32, device=self.device)
-        x = F.relu(self.input_layer(x))
+        x = F.relu(self.input_layer(state))
         for hidden_layer in self.hidden_layers:
             x = F.relu(hidden_layer(x))
         x = self.output_layer(x)
