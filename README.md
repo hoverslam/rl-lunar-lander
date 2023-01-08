@@ -13,6 +13,8 @@ The following RL algorithms were implemented:
 - Deep Q-Network (DQN)
 - REINFORCE with baseline / Vanilla Policy Gradient (VPG)
 
+All algorithms use a 2-layer MLP (128, 64) and a discount factor of 0.999 for better comparison. The learning rate is set individually.
+
 ## How to
 
 Install dependencies with &nbsp;&nbsp;&nbsp;&nbsp; `pip install -r requirements.txt`.
