@@ -40,7 +40,7 @@ class ACAgent():
         self.actor = Network(input_dim, output_dim, hidden_dims)
         self.actor.to(self.device)
         self.actor_optimizer = torch.optim.Adam(self.actor.parameters(), alpha_actor)
-        self.critic = Network(input_dim, 1, hidden_dims)
+        self.critic = Network(input_dim, output_dim, hidden_dims)
         self.critic.to(self.device)
         self.critic_optimizer = torch.optim.Adam(self.critic.parameters(), alpha_critic)
 
@@ -121,6 +121,7 @@ class ACAgent():
         """
         state = torch.from_numpy(state).to(self.device)
         next_state = torch.from_numpy(next_state).to(self.device)
+        next_action = self.act(next_state.numpy())
 
         # Compute log probability of action taken
         logits = self.actor(state)
@@ -129,16 +130,20 @@ class ACAgent():
         log_prob = dist.log_prob(torch.tensor(action).to(self.device))
 
         # Update actor
-        td_target = reward + self.gamma * self.critic(next_state) * (not terminated)
-        td_error = (td_target - self.critic(state))
-        loss_actor = -1 * td_error * log_prob
+        value = self.critic(state).gather(0, torch.tensor(action))
+        next_value = self.critic(next_state).gather(0, torch.tensor(next_action))
+        td_target = reward + self.gamma * next_value * (not terminated)
+        td_error = td_target - value
+        loss_actor = -1 * log_prob * td_error
         self.actor_optimizer.zero_grad()
         loss_actor.backward()
         self.actor_optimizer.step()
 
-        # Update critic: We have to built the graph a second time since PyTorch allows only one backward pass.
-        td_target = reward + self.gamma * self.critic(next_state) * (not terminated)
-        td_error = (td_target - self.critic(state))
+        # Update critic
+        value = self.critic(state).gather(0, torch.tensor(action))
+        next_value = self.critic(next_state).gather(0, torch.tensor(next_action))
+        td_target = reward + self.gamma * next_value * (not terminated)
+        td_error = td_target - value
         loss_critic = td_error.pow(2)
         self.critic_optimizer.zero_grad()
         loss_critic.backward()
@@ -193,8 +198,8 @@ class ACAgent():
         """Save model.
 
         Args:
-            file_name (str): File name of the model. A common PyTorch convention is 
-            using .pt file extension. 
+            file_name (str): File name of the model. A common PyTorch convention is
+            using .pt file extension.
         """
         path = os.path.join(os.getcwd(), "models", "actor_" + file_name)
         torch.save(self.actor.state_dict(), path)

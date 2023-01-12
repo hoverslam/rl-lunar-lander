@@ -14,7 +14,7 @@ agents = {"NFQ": NFQAgent(gamma=0.999, epsilon_init=1.0, epsilon_min=0.1, epsilo
           "DQN": DQNAgent(gamma=0.999, epsilon_init=1.0, epsilon_min=0.1, epsilon_decay=0.8, alpha=0.0005,
                           input_dim=8, output_dim=4, hidden_dims=[128, 64], batch_size=64),
           "VPG": VPGAgent(gamma=0.999, alpha=0.001, input_dim=8, output_dim=4, hidden_dims=[128, 64]),
-          "AC": ACAgent(gamma=0.999, alpha_actor=0.0008, alpha_critic=0.001,
+          "AC": ACAgent(gamma=0.999, alpha_actor=0.0001, alpha_critic=0.0005,
                         input_dim=8, output_dim=4, hidden_dims=[128, 64])}
 
 

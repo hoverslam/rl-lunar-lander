@@ -63,11 +63,11 @@ Reference: [OpenAI: Spinning Up in Deep RL!, Vanilla Policy Gradient](https://sp
 
 ## Advantage Actor Critic
 
-| Training                                                    | After 2000 episodes                                |
+| Training                                                    | After 1000 episodes                                |
 |:-----------------------------------------------------------:|:--------------------------------------------------:|
 | <img src="img/ac_training.png?raw=true" height="300">       | <img src="img/ac.gif?raw=true" height="300">       |
 
-Reference: [R. Sutton, and A. Barto (2018) Reinforcement Learning: An Introduction, p. 332](http://incompleteideas.net/book/the-book.html)
+Reference: [RL Course by David Silver - Lecture 7: Policy Gradient Methods](https://youtu.be/KHZVXao4qXs?t=3434)
 
 
 ## Comparison
@@ -79,7 +79,7 @@ The **score** is the average return over 100 episodes on the trained agent.
 | Neural Fitted Q Iteration | -24.90 |
 | Deep Q-Network            | 271.47 |
 | Vanilla Policy Gradient   | 172.49 |
-| Advantage Actor Critic    | 111.26 |
+| Advantage Actor Critic    | 205.77 |
 
 
 ## Dependencies
